@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 set(name 3dvr)
-
 project(${name})
 
 add_definitions(-DSHADER_DIR="${CMAKE_SOURCE_DIR}/Src/Graphics/Shaders" -DMODEL_DIR="${CMAKE_SOURCE_DIR}/Src/Geometry/Models")
@@ -15,8 +14,6 @@ if (NOT DEFINED ${var})
   endif()
 endif()
 endfunction(check_env)
-
-
 
 #Main Files
 add_executable(${name} Src/Application.h Src/Application.cpp Src/Main.cpp Deps/glad/src/gl.c
@@ -49,38 +46,26 @@ if (MSVC)
   endif ()
   check_env(VCPKG_INCLUDE_PATH)
   check_env(VCPKG_LIB_PATH)
-  #check_env(CMAKE_MODULE_PATH)
-  if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-	check_env(VCPKG_CMAKE_FILE)
-	set(CMAKE_TOOLCHAIN_FILE ${VCPKG_CMAKE_FILE})
-	endif()
+  check_env(VCPKG_CMAKE_TOOLCHAIN_FILE)
+  set(CMAKE_TOOLCHAIN_FILE ${VCPKG_CMAKE_TOOLCHAIN_FILE})
+
   
   #include_directories($ENV{VCPKG_INCLUDE_PATH})
   #include_directories($ENV{VCPKG_LIB_PATH})
   
-  #find_package(GLM REQUIRED)
-  #find_package(GLM QUIET)
+  #find_package(GLM REQUIRED) #Throws Error
+  #find_package(GLM QUIET) #Attempted fix from a glm github commit same error thrown as before
   #find_package(glm QUIET)
-  #find_package(imgui REQUIRED)
-  #find_package(assimp CONFIG REQUIRED)
-  #find_package(glfw3 CONFIG REQUIRED)
-  #find_package(glad CONFIG REQUIRED)
-  #find_package(SDL2 CONFIG REQUIRED)
-  #find_package(openvr CONFIG REQUIRED)
-  #
-  #target_link_libraries(${name} PRIVATE SDL2::SDL2 SDL2::SDL2main glfw assimp::assimp openvr::openvr glm::glm glad::glad imgui::imgui )
+  #find_package(imgui REQUIRED) #Throws Error
+  #find_package(assimp CONFIG REQUIRED) #Throws Error
+  #find_package(glfw3 CONFIG REQUIRED) #Assumed Error Thrown not yet tested
+  #find_package(glad CONFIG REQUIRED) #Assumed Error Thrown not yet tested
+  #find_package(SDL2 CONFIG REQUIRED) #Assumed Error Thrown not yet tested
+  #find_package(openvr CONFIG REQUIRED) #Assumed Error Thrown not yet tested
   
-  
-  #set(Lib_Path ${CMAKE_SOURCE_DIR}/Deps)
-  #include_directories(${Lib_Path}/Assimp/include ${Lib_Path}/glad/include ${Lib_Path}/glfw-3.3.2/include ${Lib_Path}/glm/glm ${Lib_Path}/imgui ${Lib_Path}/openvr/include ${Lib_Path}/SDL/include ${CMAKE_SOURCE_DIR}/Src)
-  #
-  #target_link_directories(${name} PRIVATE ${Lib_Path}/Assimp/lib64 ${Lib_Path}/glfw-3.3.2/lib-vc2019 ${Lib_Path}/openvr/lib/win64 ${Lib_Path}/SDL/bin/win64)
-  #message( "Lib Path is"  ${Lib_Path})
-  #
-  #set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${name})
-  #
-  #target_link_libraries(${name} debug assimp.lib glfw3.lib openvr_api.lib SDL2.lib SDL2main.lib)
-  #target_link_libraries(${name} optimized assimp.lib glfw3.lib openvr_api.lib SDL2.lib SDL2main.lib)
+  # Had to use vcpkg x-package-info --x-json --x-installed [lib]:x86-windows in cmd to find the usage info
+  #target_link_libraries(${name} PRIVATE SDL2::SDL2 SDL2::SDL2main glfw assimp::assimp openvr::openvr glm::glm glad::glad imgui::imgui ) 
+ 
 endif ()
 
 
