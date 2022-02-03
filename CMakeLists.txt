@@ -2,7 +2,14 @@ cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 set(name 3dvr)
 project(${name})
 
-add_definitions(-DSHADER_DIR="${CMAKE_SOURCE_DIR}/Src/Graphics/Shaders" -DMODEL_DIR="${CMAKE_SOURCE_DIR}/Src/Geometry/Models")
+if(DEFINED ENV{VCPKG_ROOT})
+	set(VCPKG_CMAKE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+	list(APPEND CMAKE_TOOLCHAIN_FILE${VCPKG_CMAKE})
+	set(-DCMAKE_PREFIX_PATH="$ENV{VCPKG_ROOT}//installed//x86-windows//share")
+endif()
+
+
+add_definitions(-DSHADER_DIR="${CMAKE_SOURCE_DIR}//Src//Graphics//Shaders" -DMODEL_DIR="${CMAKE_SOURCE_DIR}//Src//Geometry//Models")
 
 function(check_env var)
 if (NOT DEFINED ${var})
@@ -14,6 +21,20 @@ if (NOT DEFINED ${var})
   endif()
 endif()
 endfunction(check_env)
+
+check_env(VCPKG_INCLUDE_PATH)
+check_env(VCPKG_LIB_PATH)
+
+include_directories($ENV{VCPKG_INCLUDE_PATH})
+include_directories($ENV{VCPKG_LIB_PATH})
+
+find_package(glm REQUIRED) #Throws Error
+#find_package(imgui REQUIRED) #Throws Error
+#find_package(assimp CONFIG REQUIRED) #Throws Error
+#find_package(glfw3 CONFIG REQUIRED) #Assumed Error Thrown not yet tested
+#find_package(glad CONFIG REQUIRED) #Assumed Error Thrown not yet tested
+#find_package(SDL2 CONFIG REQUIRED) #Assumed Error Thrown not yet tested
+#find_package(openvr CONFIG REQUIRED) #Assumed Error Thrown not yet tested
 
 #Main Files
 add_executable(${name} Src/Application.h Src/Application.cpp Src/Main.cpp Deps/glad/src/gl.c
@@ -44,24 +65,7 @@ if (MSVC)
   if (CMAKE_SIZEOF_VOID_P EQUAL 4)
     message(SEND_ERROR "Please build for 64-bit MSVS.")
   endif ()
-  check_env(VCPKG_INCLUDE_PATH)
-  check_env(VCPKG_LIB_PATH)
-  check_env(VCPKG_CMAKE_TOOLCHAIN_FILE)
-  set(CMAKE_TOOLCHAIN_FILE ${VCPKG_CMAKE_TOOLCHAIN_FILE})
-
   
-  #include_directories($ENV{VCPKG_INCLUDE_PATH})
-  #include_directories($ENV{VCPKG_LIB_PATH})
-  
-  #find_package(GLM REQUIRED) #Throws Error
-  #find_package(GLM QUIET) #Attempted fix from a glm github commit same error thrown as before
-  #find_package(glm QUIET)
-  #find_package(imgui REQUIRED) #Throws Error
-  #find_package(assimp CONFIG REQUIRED) #Throws Error
-  #find_package(glfw3 CONFIG REQUIRED) #Assumed Error Thrown not yet tested
-  #find_package(glad CONFIG REQUIRED) #Assumed Error Thrown not yet tested
-  #find_package(SDL2 CONFIG REQUIRED) #Assumed Error Thrown not yet tested
-  #find_package(openvr CONFIG REQUIRED) #Assumed Error Thrown not yet tested
   
   # Had to use vcpkg x-package-info --x-json --x-installed [lib]:x86-windows in cmd to find the usage info
   #target_link_libraries(${name} PRIVATE SDL2::SDL2 SDL2::SDL2main glfw assimp::assimp openvr::openvr glm::glm glad::glad imgui::imgui ) 
