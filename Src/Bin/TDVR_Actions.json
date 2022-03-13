@@ -1,0 +1,31 @@
+{
+	"default_bindings" : 
+	[
+	{
+		"controller_type" : "vive_controller",
+		"binding_url": "TDVR_Controller_Bindings_Vive.json"
+	}
+	],
+	"actions" : 
+	[
+	{
+        "name" : "/actions/demo/in/Interact",
+		"type" : "boolean"
+	},
+	{
+        "name" : "/actions/demo/in/Hand_Left",
+		"type" : "pose"
+	},
+	{
+        "name" : "/actions/demo/in/Hand_Right",
+		"type" : "pose"
+	},
+	],
+	"localization" : 
+	[
+	{
+		"language_tag": "en_US",
+        "/actions/demo/in/Interact" : "Interact"
+	}
+	]
+}

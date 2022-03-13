@@ -1,0 +1,47 @@
+{
+	"Bindings" :
+	{
+		"actions/demo" :
+		{
+			"poses" :
+			[
+			{
+				"output" : "/actions/demo/in/hand_left",
+				"path" : "/user/hand/left/pose/raw"
+			},
+			{
+				"output" : "/actions/demo/in/hand_right",
+				"path" : "/user/hand/right/pose/raw"
+			}
+			],
+			"haptics" : 
+			[
+			{
+				"output" : "/actions/demo/in/haptic_left",
+				"path" : "/user/hand/left/output/haptic"
+			},
+			{
+				"output" : "/actions/demo/in/haptic_right",
+				"path" : "/user/hand/right/output/haptic"
+			}
+			],
+			"sources" : 
+			[
+			{
+				"inputs" : 
+				{
+					"click" : 
+					{
+						"output" : "/action/demo/in/interact"
+					}
+				},
+				"mode" : "button",
+				"path" : "/user/hand/right/input/trigger"
+			}
+			]
+		}
+	},
+	"controller_type" : "vive_controller",
+	"description" : "Bindings for 3DVR Demo for the HTC Vive controller",
+	"name" : "3DVR Bindings for Vive Controller"
+}
