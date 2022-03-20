@@ -19,7 +19,7 @@ namespace TDVR
 			unsigned int m_ShaderID;
 
 			//Public Member Functions
-			void inline Use() { glUseProgram(m_ShaderID); }
+			void Use() { glUseProgram(this->m_ShaderID); }
 
 			/*template<typename T>
 			void SetShaderVariable(const char* VarName, const T& Val) const
@@ -72,7 +72,7 @@ namespace TDVR
 
 			void SetMat4(const char* varName, const glm::mat4& Var)const 
 			{
-				glUniformMatrix4fv(glGetUniformLocation(m_ShaderID, varName), 1, GL_FALSE, &Var[0][0]);
+				glUniformMatrix4fv(glGetUniformLocation(this->m_ShaderID, varName), 1, GL_FALSE, &Var[0][0]);
 			}
 
 			//Essentials

@@ -9,12 +9,6 @@ namespace TDVR
 { 
 	namespace MDL 
     {
-        struct Texture
-        {
-            GLuint id;
-            const char* type, *path;
-        };
-
         struct Transform 
         {
             glm::mat4 m_ModelMatrix = glm::mat4{ 1.0f };
@@ -39,15 +33,17 @@ namespace TDVR
             
             inline void SetModelMatrix(glm::mat4& mat) { m_Transform.m_ModelMatrix = mat; }
             
-            void Draw(GPCS::Shader* shader);
+            void Draw();
+            glm::mat4 GetTranslationMatrix();
             //Essentials
-            Model(const char* ModelName, std::vector<Math::Vertex> verts, std::vector<unsigned int> indices, std::vector<aiFace> faces, glm::mat4 modelmatrix = glm::mat4{1.0f})
+            Model(const char* ModelName, std::vector<Math::Vertex> verts, std::vector<unsigned int> indices, std::vector<aiFace> faces, glm::mat4 modelmatrix = glm::mat4{ 1.0f }, unsigned int textureid = NULL)
             {
                 this->m_Vertices = verts;
                 this->m_Indices = indices;
                 this->m_Faces = faces;
                 this->m_FilePath = ModelName;
-                this->m_Transform = Transform{ modelmatrix, glm::vec4{0.0f,0.0f,0.0f,1.0f}, glm::vec3{1.0f}, glm::vec3{0.0f} };
+                this->m_Transform = Transform{ modelmatrix, glm::vec4{0.0f,1.0f,0.0f,1.0f}, glm::vec3{0.5f}, glm::vec3{0.0f} };
+                this->m_TextureID = textureid;
                 SetUpModel();
             }
 
@@ -64,6 +60,7 @@ namespace TDVR
             GLuint m_VertexCount;
             Transform m_Transform;
             GLuint m_VAO, m_VBO, m_IBO;
+            unsigned int m_TextureID;
             
 
             vr::RenderModel_t* VRModel;

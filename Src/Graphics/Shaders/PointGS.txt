@@ -1,0 +1,49 @@
+#version 410 core
+layout (points) in;
+layout (line_strip, max_vertices = 102) out;
+
+in VS_OUT {
+	vec3 color;
+} gs_in[];
+
+uniform mat4 matrix;
+
+const float radius = 1.0;
+const float PI = 3.14159;
+const float HALF_PI = 1.57079;
+const int division = 10;
+
+
+out vec4 outcolor;
+
+void Build_Sphere(vec4 pos)
+{
+	outcolor = vec4(gs_in[0].color, 1.0);
+	
+	float segment = 2*PI / division;
+	float slice = PI / division;
+	float segmentAngle, sliceAngle;
+	
+	gl_Position = matrix * (pos + vec4(0.0, radius, 0.0, 0.0));
+	EmitVertex();
+	for(int i = 1; i < division; i++)
+	{
+		sliceAngle = PI /2 - i * slice;
+		for(int j = 0; j < division; j++)
+		{
+			segmentAngle = j * segment;
+			gl_Position = matrix * (pos + vec4(radius * cos(sliceAngle) * cos(segmentAngle), radius * sin(sliceAngle) * sin(segmentAngle), radius * sin(sliceAngle), 0.0));
+			EmitVertex();
+		}
+	}
+	gl_Position = matrix * (pos - vec4(0.0, radius, 0.0, 0.0));
+	EmitVertex();
+	EndPrimitive();
+}
+
+void main()
+{
+	Build_Sphere(gl_in[0].gl_Position);
+}
+
+

@@ -7,21 +7,33 @@ namespace TDVR
 	{
 		Shader::Shader(const char* ShaderName) 
 		{
+			bool gshader = true;
 			std::string Vshader = SHADER_DIR + (std::string)"/" + (std::string)ShaderName + "VS.txt";
 			std::string FShader = SHADER_DIR + (std::string)"/" + (std::string)ShaderName + "FS.txt";
+			std::string GShader = SHADER_DIR + (std::string)"/" + (std::string)ShaderName + "GS.txt";
 
-			std::string VSCode, FSCode;
-			std::ifstream VSFile, FSFile;
+			std::string VSCode, FSCode, GSCode;
+			std::ifstream VSFile, FSFile, GSFile;
 			
 
 			VSFile.exceptions(std::istream::failbit | std::istream::badbit);
 			FSFile.exceptions(std::istream::failbit | std::istream::badbit);
+			GSFile.exceptions(std::istream::failbit | std::istream::badbit);
 			try 
 			{
 				VSFile.open(Vshader.c_str());
 				FSFile.open(FShader.c_str());
+				try 
+				{
+					GSFile.open(GShader.c_str());
+				}
+				catch (std::istream::failure& e) 
+				{
+					std::cout << "No Geometry Shader found for: " << (std::string)ShaderName << '\n';
+					gshader = false;
+				}
 
-				std::stringstream VSStream, FSStream;
+				std::stringstream VSStream, FSStream, GSStream;
 
 				VSStream << VSFile.rdbuf();
 				FSStream << FSFile.rdbuf();
@@ -31,15 +43,27 @@ namespace TDVR
 
 				VSCode = VSStream.str();
 				FSCode = FSStream.str();
+
+				if (gshader) 
+				{
+					GSStream << GSFile.rdbuf();
+
+					GSFile.close();
+
+					GSCode = GSStream.str();
+				}
 			}
 			catch (std::istream::failure& e) 
 			{
 				std::cerr << "ERROR: A Vital Shader Has refused to Load. " << e.what() << '\n';
 			}
+			const char* GSCharCode;
 			const char* VSCharCode = VSCode.c_str();
 			const char* FSCharCode = FSCode.c_str();
+			if (gshader)
+				GSCharCode = GSCode.c_str();
 
-			unsigned int v, f;
+			unsigned int v, f, g;
 
 			v = glCreateShader(GL_VERTEX_SHADER);
 			glShaderSource(v, 1, &VSCharCode, NULL);
@@ -51,9 +75,26 @@ namespace TDVR
 			glCompileShader(f);
 			CheckCompileErrors(f, "FRAGMENT");
 
+			if (gshader) 
+			{
+				g = glCreateShader(GL_GEOMETRY_SHADER);
+				glShaderSource(g, 1, &GSCharCode, NULL);
+				glCompileShader(g);
+				CheckCompileErrors(g, "GEOMETRY");
+			}
+
 			m_ShaderID = glCreateProgram();
 			glAttachShader(m_ShaderID, v);
 			glAttachShader(m_ShaderID, f);
+			if (gshader)
+				glAttachShader(m_ShaderID, g);
+			glLinkProgram(m_ShaderID);
+			CheckCompileErrors(m_ShaderID, "PROGRAM");
+			// delete the shaders as they're linked into our program now and no longer necessery
+			glDeleteShader(v);
+			glDeleteShader(f);
+			if (gshader)
+				glDeleteShader(g);
 			std::cout << m_ShaderID << '\n';
 		}
 

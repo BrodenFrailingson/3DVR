@@ -1,6 +1,12 @@
 #pragma once
 #include "VRhandler.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif //_WIN32
+
 namespace TDVR 
 {
 	namespace VR 
@@ -47,6 +53,12 @@ namespace TDVR
 				std::cerr << "ERROR: SDL VSync Init Failed. Cause: " << SDL_GetError() << '\n';
 				return false;
 			}
+			
+			m_ModelShader = new GPCS::Shader("Model");
+			m_ControllerShader = new GPCS::Shader("Controller");
+			m_WindowShader = new GPCS::Shader("Window");
+			m_RenderModelShader = new GPCS::Shader("RenderModel");
+			m_PointShader = new GPCS::Shader("Point");
 
 			m_ProjectionLeft = GetHMDProjectionMatrix(vr::Eye_Left);
 			m_ProjectionRight = GetHMDProjectionMatrix(vr::Eye_Right);
@@ -56,11 +68,9 @@ namespace TDVR
 			SetupRenderStereoTargets();
 			InitCompanionWindow();
 			
-			m_ModelShader = new GPCS::Shader("Model");
-			m_ControllerShader = new GPCS::Shader("Controller");
-			m_WindowShader = new GPCS::Shader("Window");
+			
 
-			//MDL::ModelManager::Instance()->AddCube();
+			MDL::ModelManager::Instance()->AddCube();
 			
 			if (!vr::VRCompositor()) 
 			{
@@ -85,6 +95,7 @@ namespace TDVR
 			vr::VRInput()->GetActionHandle("/actions/demo/out/Haptic_Right", &m_Controllers[right].m_ActionHaptic);
 			vr::VRInput()->GetInputSourceHandle("/user/hand/right", &m_Controllers[right].m_Source);
 			vr::VRInput()->GetActionHandle("/actions/demo/in/Hand_Right", &m_Controllers[right].m_ActionPose);
+			return true;
 		}
 
 		bool VRhandler::SetupRenderStereoTargets() 
@@ -145,16 +156,16 @@ namespace TDVR
 			std::vector<ScreenVertexData> Verts;
 
 			// left eye verts
-			Verts.push_back(ScreenVertexData{glm::vec2(-1,-1), glm::vec2(0, 1)});
-			Verts.push_back(ScreenVertexData{glm::vec2( 0,-1), glm::vec2(1, 1)});
-			Verts.push_back(ScreenVertexData{glm::vec2(-1, 1), glm::vec2(0, 0)});
-			Verts.push_back(ScreenVertexData{glm::vec2( 0, 1), glm::vec2(1, 0)});
+			Verts.push_back(ScreenVertexData{glm::vec2(-1,-1), glm::vec2(0, 0)});	//Bottom Left
+			Verts.push_back(ScreenVertexData{glm::vec2( 0,-1), glm::vec2(1, 0)});	//Bottom Right
+			Verts.push_back(ScreenVertexData{glm::vec2(-1, 1), glm::vec2(0, 1)});	//Top Left
+			Verts.push_back(ScreenVertexData{glm::vec2( 0, 1), glm::vec2(1, 1)});	//Top Right
 
 			// right eye verts
-			Verts.push_back(ScreenVertexData{glm::vec2(0,-1), glm::vec2(0, 1)});
-			Verts.push_back(ScreenVertexData{glm::vec2(1,-1), glm::vec2(1, 1)});
-			Verts.push_back(ScreenVertexData{glm::vec2(0, 1), glm::vec2(0, 0)});
-			Verts.push_back(ScreenVertexData{glm::vec2(1, 1), glm::vec2(1, 0)});
+			Verts.push_back(ScreenVertexData{glm::vec2(0,-1), glm::vec2(0, 0)});	//Bottom Left
+			Verts.push_back(ScreenVertexData{glm::vec2(1,-1), glm::vec2(1, 0)});	//Bottom Right
+			Verts.push_back(ScreenVertexData{glm::vec2(0, 1), glm::vec2(0, 1)});	//Top Left
+			Verts.push_back(ScreenVertexData{glm::vec2(1, 1), glm::vec2(1, 1)});	//Top Right
 
 			GLushort Indices[] = { 0, 1, 3,   0, 3, 2,   4, 5, 7,   4, 7, 6 };
 			m_CWindowVertexCount = _countof(Indices);
@@ -204,7 +215,7 @@ namespace TDVR
 			}
 
 			{
-				glClearColor(0.1f, 0.1f, 0.1f, 1);
+				glClearColor(0, 0, 0, 1);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			}
 
@@ -238,8 +249,8 @@ namespace TDVR
 
 				for (int i = 0; i < 3; i++) 
 				{
-					glm::vec3 color{ 0.0f };
-					glm::vec4 point{ 0,0,0,1 };
+					glm::vec3 color( 0.0f );
+					glm::vec4 point( 0,0,0,1 );
 					point[i] += 0.05f;
 					color[i] = 1.0f;
 					point = mat * point;
@@ -263,8 +274,8 @@ namespace TDVR
 				}
 
 				glm::vec4 start = mat * glm::vec4{ 0,0, -0.02f,1 };
-				glm::vec4 end = mat * glm::vec4{ 0,0,-39.0f, 1 };
-				glm::vec3 color{ 0.92f,0.92f,0.71f };
+				glm::vec4 end = mat * glm::vec4{ 0,0,-39.f, 1 };
+				glm::vec3 color{ .92f,.92f,.71f };
 
 				vertexdata.push_back(start.x);
 				vertexdata.push_back(start.y);
@@ -312,7 +323,7 @@ namespace TDVR
 
 		void VRhandler::RenderStereoTargets() 
 		{
-			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+			glClearColor(0, 0, 0, 1.0f);
 			glEnable(GL_MULTISAMPLE);
 
 			glBindFramebuffer(GL_FRAMEBUFFER, m_LeftEyeDesc.m_RenderFrameBufferID);
@@ -383,9 +394,8 @@ namespace TDVR
 			glEnable(GL_DEPTH_TEST);
 
 			//Loaded Model Rendering
-			m_ModelShader->Use();
-			m_ModelShader->SetMat4("view", GetViewProjectionMatrix(eye));
-			MDL::ModelManager::Instance()->Draw(m_ModelShader);
+			MDL::ModelManager::Instance()->Draw(m_ModelShader, GetViewProjectionMatrix(eye));
+			MDL::ModelManager::Instance()->Draw(m_PointShader, GetViewProjectionMatrix(eye));
 			
 			bool InputReady = m_HMD->IsInputAvailable();
 
@@ -398,15 +408,18 @@ namespace TDVR
 				glDrawArrays(GL_LINES, 0, m_ControllerVertexCount);
 				glBindVertexArray(0);
 			}
-			m_ModelShader->Use();
 
+
+			m_RenderModelShader->Use();
+			
 			//Controller Model Rendering
 			for (EHand Hand = left; Hand <= right; ((int&)Hand)++)
 			{
 				if (!m_Controllers[Hand].m_ShowController || !m_Controllers[Hand].m_Model)
 					continue;
-
-				m_Controllers[Hand].m_Model->Draw(m_ModelShader);
+				const glm::mat4 &mat = GetViewProjectionMatrix(eye) * m_Controllers[Hand].m_ModelMatrix;
+				m_RenderModelShader->SetMat4("matrix", mat);
+				m_Controllers[Hand].m_Model->Draw();
 			}
 
 			glUseProgram(0);
@@ -469,20 +482,18 @@ namespace TDVR
 				}
 				else
 				{
-					Math::SteamMatrixToGlmMatrix(poseData.pose.mDeviceToAbsoluteTracking, m_Controllers[hand].m_ModelMatrix);
-					if(m_Controllers[hand].m_Model)
-						m_Controllers[hand].m_Model->SetModelMatrix(m_Controllers[hand].m_ModelMatrix);
+					m_Controllers[hand].m_ModelMatrix = Math::SteamMatrixToGlmMatrix(poseData.pose.mDeviceToAbsoluteTracking);
 
 					vr::InputOriginInfo_t originInfo;
 					if (vr::VRInput()->GetOriginTrackedDeviceInfo(poseData.activeOrigin, &originInfo, sizeof(originInfo)) == vr::VRInputError_None
 						&& originInfo.trackedDeviceIndex != vr::k_unTrackedDeviceIndexInvalid)
 					{
+
 						std::string sRenderModelName = GetDeviceString(originInfo.trackedDeviceIndex, vr::Prop_RenderModelName_String);
-						if (sRenderModelName.c_str() != m_Controllers[hand].m_ModelName)
+						if (sRenderModelName != m_Controllers[hand].m_ModelName)
 						{
-							m_Controllers[hand].m_Model = MDL::ModelManager::Instance()->LoadVRModel(sRenderModelName.c_str());
-							m_Controllers[hand].m_ModelName = sRenderModelName.c_str();
-							std::cout << "Here, RenderModel Name: "<< sRenderModelName << '\n';
+							m_Controllers[hand].m_Model = LoadVRModel(sRenderModelName.c_str());
+							m_Controllers[hand].m_ModelName = sRenderModelName;
 						}
 					}
 				}
@@ -519,10 +530,11 @@ namespace TDVR
 				if (m_DevicePose[nDevice].bPoseIsValid)
 				{
 					m_ValidPoseCount++;
-					Math::SteamMatrixToGlmMatrix(m_DevicePose[nDevice].mDeviceToAbsoluteTracking, m_DeviceMatrix[nDevice]);
+					m_DeviceMatrix[nDevice] = Math::SteamMatrixToGlmMatrix(m_DevicePose[nDevice].mDeviceToAbsoluteTracking);
 					
 					if (m_DeviceClass[nDevice] == 0)
 					{
+						std::cout << m_HMD->GetTrackedDeviceClass(nDevice) << '\n';
 						switch (m_HMD->GetTrackedDeviceClass(nDevice))
 						{
 						case vr::TrackedDeviceClass_Controller:        m_DeviceClass[nDevice] = 'C'; break;
@@ -576,13 +588,13 @@ namespace TDVR
 		{
 			if (!m_HMD)
 				return glm::mat4{ 1.0f };
-			vr::HmdMatrix44_t mat = m_HMD->GetProjectionMatrix(eye, 0.01f, 30.0f);
+			vr::HmdMatrix44_t mat = m_HMD->GetProjectionMatrix(eye, 0.1f, 30.0f);
 
-			return glm::mat4{
+			return glm::mat4(
 				mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0],
 				mat.m[0][1], mat.m[1][1], mat.m[2][1], mat.m[3][1],
 				mat.m[0][2], mat.m[1][2], mat.m[2][2], mat.m[3][2],
-				mat.m[0][3], mat.m[1][3], mat.m[2][3], mat.m[3][3] };
+				mat.m[0][3], mat.m[1][3], mat.m[2][3], mat.m[3][3]  );
 		}
 
 		glm::mat4 VRhandler::GetHMDEyePos(vr::Hmd_Eye eye) 
@@ -591,11 +603,11 @@ namespace TDVR
 				return glm::mat4{ 1.0f };
 			vr::HmdMatrix34_t mat = m_HMD->GetEyeToHeadTransform(eye);
 
-			return glm::mat4{
-				mat.m[0][0], mat.m[1][0], mat.m[2][0], 0.0f,
-				mat.m[0][1], mat.m[1][1], mat.m[2][1], 0.0f,
-				mat.m[0][2], mat.m[1][2], mat.m[2][2], 0.0f,
-				mat.m[0][3], mat.m[1][3], mat.m[2][3], 1.0f };
+			return glm::mat4(
+				mat.m[0][0], mat.m[1][0], mat.m[2][0], 0.0,
+				mat.m[0][1], mat.m[1][1], mat.m[2][1], 0.0,
+				mat.m[0][2], mat.m[1][2], mat.m[2][2], 0.0,
+				mat.m[0][3], mat.m[1][3], mat.m[2][3], 1.0f );
 		}
 
 		bool VRhandler::GetDigitalActionRisingEdge(vr::VRActionHandle_t action, vr::VRInputValueHandle_t* pDevicePath)
@@ -635,5 +647,123 @@ namespace TDVR
 			}
 			return actionData.bActive && actionData.bState;
 		}
+
+		MDL::Model* VRhandler::LoadVRModel(const char* ModelName)
+		{
+			for (std::vector< MDL::Model* >::iterator i = m_ControllerModels.begin(); i != m_ControllerModels.end(); i++)
+			{
+			
+				if ((*i)->m_FilePath == ModelName)
+				{
+					std::cout << "Here" << '\n';
+					return (*i);
+				}
+			}
+
+			std::vector<Math::Vertex> vertices;
+			std::vector<unsigned int> indices;
+
+			vr::RenderModel_t* model;
+			vr::EVRRenderModelError err;
+
+			while (1)
+			{
+				err = vr::VRRenderModels()->LoadRenderModel_Async(ModelName, &model);
+				if (err != vr::VRRenderModelError_Loading)
+					break;
+				#ifdef _WIN32
+					Sleep(1);
+				#else
+					usleep(1 * 1000);
+				#endif // _WIN32
+			}
+
+			if (err != vr::VRRenderModelError_None)
+			{
+				std::cout << "Unable To load Controller Model. ERROR: " << vr::VRRenderModels()->GetRenderModelErrorNameFromEnum(err) << '\n';
+				return nullptr;
+			}
+
+			for (int i = 0; i < (int)model->unVertexCount; i++)
+			{
+				//X,Y,Z of vertex info
+				Math::Vertex vertex;
+				glm::vec3 vector;
+				glm::vec2 uv;
+				vector.x = model->rVertexData[i].vPosition.v[0];
+				vector.y = model->rVertexData[i].vPosition.v[1];
+				vector.z = model->rVertexData[i].vPosition.v[2];
+				vertex.m_Pos = glm::vec4(vector, 1.0f);
+
+				vector.x = model->rVertexData[i].vNormal.v[0];
+				vector.y = model->rVertexData[i].vNormal.v[1];
+				vector.z = model->rVertexData[i].vNormal.v[2];
+				vertex.m_Normal = vector;
+
+				uv.x = model->rVertexData[i].rfTextureCoord[0];
+				uv.y = model->rVertexData[i].rfTextureCoord[1];
+				vertex.m_UVs = uv;
+
+				vertices.push_back(vertex);
+			};
+
+			for (int i = 0; i < (int)model->unTriangleCount * 3; i++)
+			{
+				indices.push_back(model->rIndexData[i]);
+			}
+
+			vr::RenderModel_TextureMap_t* pTexture;
+			while (1)
+			{
+				err = vr::VRRenderModels()->LoadTexture_Async(model->diffuseTextureId, &pTexture);
+				if (err != vr::VRRenderModelError_Loading)
+					break;
+
+				#ifdef _WIN32
+					Sleep(1);
+				#else
+					usleep(1 * 1000);
+				#endif // _WIN32
+			}
+
+			if (err != vr::VRRenderModelError_None)
+			{
+				std::cout << "Unable to load render texture id: " << model->diffuseTextureId << " for render model: " << ModelName << '\n';
+				vr::VRRenderModels()->FreeRenderModel(model);
+				return NULL; // move on to the next tracked device
+			}
+			m_ControllerModels.push_back(new MDL::Model(ModelName, vertices, indices, {}, glm::mat4(1.0f), LoadVRTexture(*pTexture)));
+			vr::VRRenderModels()->FreeRenderModel(model);
+			vr::VRRenderModels()->FreeTexture(pTexture);
+			
+			return m_ControllerModels.back();
+		}
+
+		unsigned int VRhandler::LoadVRTexture(vr::RenderModel_TextureMap_t& pTexture)
+		{
+			unsigned int textureid;
+			glGenTextures(1, &textureid);
+			glBindTexture(GL_TEXTURE_2D, textureid);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pTexture.unWidth, pTexture.unHeight,
+				0, GL_RGBA, GL_UNSIGNED_BYTE, pTexture.rubTextureMapData);
+
+			// If this renders black ask McJohn what's wrong.
+			glGenerateMipmap(GL_TEXTURE_2D);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+			GLfloat fLargest;
+			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &fLargest);
+			glTexParameterf(GL_TEXTURE_2D, GL_MAX_TEXTURE_MAX_ANISOTROPY, fLargest);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			return textureid;
+		}
+
 	}
 }

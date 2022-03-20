@@ -19,12 +19,16 @@ namespace TDVR
 			static inline ModelManager* Instance() { return m_Instance == 0 ? m_Instance = new ModelManager() : m_Instance; }
 			inline std::vector<Model*>& GetModelVector() { return m_Models; }
 			void LoadModel(const char* ModelName);
-			Model* LoadVRModel(const char* Modelname);
 			void AddCube();
-			void Draw(GPCS::Shader* shader) 
+			void Draw(GPCS::Shader* shader,glm::mat4& mat)
 			{ 
+				shader->Use();
 				for (int i = 0; i < m_Models.size(); i++)
-					m_Models[i]->Draw(shader);
+				{
+					mat = mat * m_Models[i]->GetTranslationMatrix();
+					shader->SetMat4("matrix", mat);
+					m_Models[i]->Draw();
+				}
 			}
 
 			void Clear() 

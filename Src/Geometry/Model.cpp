@@ -25,7 +25,7 @@ namespace TDVR
 			// set the vertex attribute pointers
 			// vertex Positions
 			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Math::Vertex), (void*)0);
+			glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Math::Vertex), (void*)0);
 			// vertex normals
 			glEnableVertexAttribArray(1);
 			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Math::Vertex), (void*)offsetof(Math::Vertex, m_Normal));
@@ -38,24 +38,34 @@ namespace TDVR
 			// vertex bitangent
 			glEnableVertexAttribArray(4);
 			glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Math::Vertex), (void*)offsetof(Math::Vertex, m_BiTangent));
+			// Vertex Color
+			glEnableVertexAttribArray(5);
+			glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE,  sizeof(Math::Vertex), (void*)offsetof(Math::Vertex, m_VertexColor));
 
 			glBindVertexArray(0);
 		}
 
-		void Model::Draw(GPCS::Shader* shader) 
+		void Model::Draw()
 		{
-			glm::mat4 mat = glm::translate(m_Transform.m_ModelMatrix, m_Transform.Pos);
-			mat = glm::scale(mat, m_Transform.Scale);
-		    mat = glm::rotate(mat, m_Transform.Rot.x, glm::vec3(1.0f, 0.0f, 0.0f));
-			mat = glm::rotate(mat, m_Transform.Rot.y, glm::vec3(0.0f, 1.0f, 0.0f));
-			mat = glm::rotate(mat, m_Transform.Rot.z, glm::vec3(0.0f, 0.0f, 1.0f));
-			shader->Use();
-			shader->SetMat4("matrix", mat);
 			glBindVertexArray(m_VAO);
+			if(m_TextureID != NULL)
+			{
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, m_TextureID);
+			}
 			glDrawElements(GL_TRIANGLES, m_Indices.size(), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 		}
 
+		glm::mat4 Model::GetTranslationMatrix() 
+		{
+			glm::mat4 mat = glm::translate(m_Transform.m_ModelMatrix, m_Transform.Pos);
+			mat = glm::scale(mat, m_Transform.Scale);
+			mat = glm::rotate(mat, m_Transform.Rot.x, glm::vec3(1.0f, 0.0f, 0.0f));
+			mat = glm::rotate(mat, m_Transform.Rot.y, glm::vec3(0.0f, 1.0f, 0.0f));
+			mat = glm::rotate(mat, m_Transform.Rot.z, glm::vec3(0.0f, 0.0f, 1.0f));
+			return mat;
+		}
 
 	}
 }

@@ -20,6 +20,7 @@ namespace TDVR
 			glm::vec2 m_UVs;
 			glm::vec3 m_Tangent{0.0f};
 			glm::vec3 m_BiTangent{0.0f};
+			glm::vec3 m_VertexColor{ 0.36f, 0.13f, 0.43f};
 		};
 
 		inline void AIMat4ToGLmMat4(const aiMatrix4x4* from, glm::mat4& to) 
@@ -38,12 +39,13 @@ namespace TDVR
 			to.a4 = (float)from[3][0]; to.b4 = (float)from[3][1];  to.c4 = (float)from[3][2]; to.d4 = (float)from[3][3];
 		}
 
-		inline void SteamMatrixToGlmMatrix(const vr::HmdMatrix34_t& vrmat, glm::mat4 &outmat) 
+		inline glm::mat4 SteamMatrixToGlmMatrix(const vr::HmdMatrix34_t& vrmat) 
 		{
-			outmat[0][0] = vrmat.m[0][0]; outmat[1][0] = vrmat.m[1][0]; outmat[2][0] = vrmat.m[2][0]; outmat[3][0] = 0.0f;
-			outmat[0][1] = vrmat.m[0][1]; outmat[1][1] = vrmat.m[1][1]; outmat[2][1] = vrmat.m[2][1]; outmat[3][1] = 0.0f;
-			outmat[0][2] = vrmat.m[0][2]; outmat[1][2] = vrmat.m[1][2]; outmat[2][2] = vrmat.m[2][2]; outmat[3][2] = 0.0f;
-			outmat[0][3] = vrmat.m[0][3]; outmat[1][3] = vrmat.m[1][3]; outmat[2][3] = vrmat.m[2][3]; outmat[3][3] = 1.0f;
+			glm::mat4 outmat(vrmat.m[0][0], vrmat.m[1][0], vrmat.m[2][0], 0.0,
+			                 vrmat.m[0][1], vrmat.m[1][1], vrmat.m[2][1], 0.0,
+				             vrmat.m[0][2], vrmat.m[1][2], vrmat.m[2][2], 0.0,
+				             vrmat.m[0][3], vrmat.m[1][3], vrmat.m[2][3], 1.0f);
+			return outmat;
 		}
 
 	}

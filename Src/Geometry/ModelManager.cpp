@@ -1,12 +1,6 @@
 #pragma once
 #include "ModelManager.h"
 
-#ifdef _WIN32
-	#include <Windows.h>
-#else
-	#include <unistd.h>
-#endif //_WIN32
-
 namespace TDVR 
 {
 	namespace MDL 
@@ -76,47 +70,47 @@ namespace TDVR
 			vertices.push_back(v7);
 			vertices.push_back(v8);
 
-			indices.push_back(1);	//Front Face
+			indices.push_back(0);	//Front Face
+			indices.push_back(1);
 			indices.push_back(2);
 			indices.push_back(3);
-			indices.push_back(4);
-			indices.push_back(3);
 			indices.push_back(2);
-
-			indices.push_back(6);	//Left Face
-			indices.push_back(1);
-			indices.push_back(8);
-			indices.push_back(3);
-			indices.push_back(8);
 			indices.push_back(1);
 
-			indices.push_back(5);	//Back Face
+			indices.push_back(5);	//Left Face
+			indices.push_back(0);
+			indices.push_back(7);
+			indices.push_back(2);
+			indices.push_back(7);
+			indices.push_back(0);
+
+			indices.push_back(4);	//Back Face
+			indices.push_back(5);
 			indices.push_back(6);
 			indices.push_back(7);
-			indices.push_back(8);
+			indices.push_back(6);
+			indices.push_back(5);
+
+			indices.push_back(1);	//Right Face
+			indices.push_back(4);
+			indices.push_back(3);
+			indices.push_back(6);
+			indices.push_back(3);
+			indices.push_back(4);
+
+			indices.push_back(5);	//Top Face
+			indices.push_back(4);
+			indices.push_back(0);
+			indices.push_back(1);
+			indices.push_back(0);
+			indices.push_back(4);
+
+			indices.push_back(2);	//Bottom Face
+			indices.push_back(3);
 			indices.push_back(7);
 			indices.push_back(6);
-
-			indices.push_back(2);	//Right Face
-			indices.push_back(5);
-			indices.push_back(4);
 			indices.push_back(7);
-			indices.push_back(4);
-			indices.push_back(5);
-
-			indices.push_back(6);	//Top Face
-			indices.push_back(5);
-			indices.push_back(1);
-			indices.push_back(2);
-			indices.push_back(1);
-			indices.push_back(5);
-
-			indices.push_back(3);	//Bottom Face
-			indices.push_back(4);
-			indices.push_back(8);
-			indices.push_back(7);
-			indices.push_back(8);
-			indices.push_back(4);
+			indices.push_back(3);
 
 			aiFace f1 = aiFace();
 			aiFace f2 = aiFace();
@@ -126,27 +120,27 @@ namespace TDVR
 			aiFace f6 = aiFace();
 
 			f1.mNumIndices = 4;
-			f1.mIndices = new unsigned int[4]{1,2,3,4};
+			f1.mIndices = new unsigned int[4]{0,1,2,3};
 			faces.push_back(f1);
 
 			f2.mNumIndices = 4;
-			f2.mIndices = new unsigned int[4]{1,3,6,8};
+			f2.mIndices = new unsigned int[4]{0,2,5,7};
 			faces.push_back(f2);
 
 			f3.mNumIndices = 4;
-			f3.mIndices = new unsigned int[4]{ 5,6,7,8 };
+			f3.mIndices = new unsigned int[4]{ 4,5,6,7 };
 			faces.push_back(f3);
 
 			f4.mNumIndices = 4;
-			f4.mIndices = new unsigned int[4]{ 2,4,5,7 };
+			f4.mIndices = new unsigned int[4]{ 1,3,4,6 };
 			faces.push_back(f4);
 
 			f5.mNumIndices = 4;
-			f5.mIndices = new unsigned int[4]{ 1,2,5,6 };
+			f5.mIndices = new unsigned int[4]{ 0,1,4,5 };
 			faces.push_back(f5);
 
 			f6.mNumIndices = 4;
-			f6.mIndices = new unsigned int[4]{ 3,4,7,8 };
+			f6.mIndices = new unsigned int[4]{ 2,3,6,7 };
 			faces.push_back(f6);
 
 			m_Models.push_back(new Model("Cube", vertices, indices, faces));
@@ -171,76 +165,7 @@ namespace TDVR
 			ProcessNode(scene->mRootNode, scene, Name);
 		}
 
-		Model* ModelManager::LoadVRModel(const char* ModelName) 
-		{
-			for (std::vector<Model*>::iterator i = m_Models.begin(); i != m_Models.end(); i++) 
-			{
-				if ((*i)->m_FilePath == ModelName) 
-				{
-					return (*i);
-				}
-			}
-
-			std::vector<Math::Vertex> vertices;
-			std::vector<unsigned int> indices;
-
-			vr::RenderModel_t* model;
-			vr::EVRRenderModelError err;
-
-			while (1) 
-			{
-				err = vr::VRRenderModels()->LoadRenderModel_Async(ModelName, &model);
-				if (err != vr::VRRenderModelError_Loading)
-					break;
-				#ifdef _WIN32
-					Sleep(1);
-				#else
-					usleep(1 * 1000);
-				#endif // _WIN32
-			}
-
-			if (err != vr::VRRenderModelError_None) 
-			{
-				std::cout << "Unable To load Controller Model. ERROR: " << vr::VRRenderModels()->GetRenderModelErrorNameFromEnum(err) << '\n';
-				return nullptr;
-			}
-
-			for (int i = 0; i < (int)model->unVertexCount; i++)
-			{
-				//X,Y,Z of vertex info
-				Math::Vertex vertex;
-				glm::vec3 vector;
-				glm::vec2 uv;
-				float posx, posy, posz, normx, normy, normz, U, V;
-				vector.x = model->rVertexData[i].vPosition.v[0];
-				vector.y = model->rVertexData[i].vPosition.v[1];
-				vector.z = model->rVertexData[i].vPosition.v[2];
-				vertex.m_Pos = glm::vec4(vector,1.0f);
-
-				vector.x = model->rVertexData[i].vNormal.v[0];
-				vector.y = model->rVertexData[i].vNormal.v[1];
-				vector.z = model->rVertexData[i].vNormal.v[2];
-				vertex.m_Normal = vector;
-
-				uv.x = model->rVertexData[i].rfTextureCoord[0];
-				uv.y = model->rVertexData[i].rfTextureCoord[1];
-				vertex.m_UVs = uv;
-
-				vertices.push_back(vertex);
-			};
-
-			for (int i = 0; i < (int)model->unTriangleCount * 3; i++) 
-			{
-				indices.push_back(model->rIndexData[i]);
-			}
-			
-			m_Models.push_back(new Model(ModelName, vertices, indices, {}));
-
-			vr::VRRenderModels()->FreeRenderModel(model);
-
-			return m_Models.back();
-			//return new Model(ModelName, vertices, indices, {});
-		}
+		
 
 		// processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
 		void ModelManager::ProcessNode(aiNode* node, const aiScene* scene, const char* name)

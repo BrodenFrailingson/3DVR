@@ -24,15 +24,6 @@
       "sources": [
         {
           "inputs": {
-            "click": {
-              "output": "/actions/demo/in/hidecubes"
-            }
-          },
-          "mode": "button",
-          "path": "/user/hand/right/input/trigger"
-        },
-        {
-          "inputs": {
             "position": {
               "output": "/actions/demo/in/analoginput"
             }
@@ -48,15 +39,6 @@
           },
           "mode": "button",
           "path": "/user/hand/right/input/grip"
-        },
-        {
-          "inputs": {
-            "click": {
-              "output": "/actions/demo/in/hidecubes"
-            }
-          },
-          "mode": "button",
-          "path": "/user/hand/left/input/trigger"
         },
         {
           "inputs": {
