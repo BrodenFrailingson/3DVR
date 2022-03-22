@@ -58,6 +58,7 @@ namespace TDVR
 			m_ControllerShader = new GPCS::Shader("Controller");
 			m_WindowShader = new GPCS::Shader("Window");
 			m_RenderModelShader = new GPCS::Shader("RenderModel");
+			m_LineShader = new GPCS::Shader("Line");
 			m_PointShader = new GPCS::Shader("Point");
 
 			m_ProjectionLeft = GetHMDProjectionMatrix(vr::Eye_Left);
@@ -156,16 +157,16 @@ namespace TDVR
 			std::vector<ScreenVertexData> Verts;
 
 			// left eye verts
-			Verts.push_back(ScreenVertexData{glm::vec2(-1,-1), glm::vec2(0, 0)});	//Bottom Left
-			Verts.push_back(ScreenVertexData{glm::vec2( 0,-1), glm::vec2(1, 0)});	//Bottom Right
-			Verts.push_back(ScreenVertexData{glm::vec2(-1, 1), glm::vec2(0, 1)});	//Top Left
-			Verts.push_back(ScreenVertexData{glm::vec2( 0, 1), glm::vec2(1, 1)});	//Top Right
+			Verts.push_back(ScreenVertexData{glm::vec2(-1,-1), glm::vec2(0, 1)});	//Bottom Left
+			Verts.push_back(ScreenVertexData{glm::vec2( 0,-1), glm::vec2(1, 1)});	//Bottom Right
+			Verts.push_back(ScreenVertexData{glm::vec2(-1, 1), glm::vec2(0, 0)});	//Top Left
+			Verts.push_back(ScreenVertexData{glm::vec2( 0, 1), glm::vec2(1, 0)});	//Top Right
 
 			// right eye verts
-			Verts.push_back(ScreenVertexData{glm::vec2(0,-1), glm::vec2(0, 0)});	//Bottom Left
-			Verts.push_back(ScreenVertexData{glm::vec2(1,-1), glm::vec2(1, 0)});	//Bottom Right
-			Verts.push_back(ScreenVertexData{glm::vec2(0, 1), glm::vec2(0, 1)});	//Top Left
-			Verts.push_back(ScreenVertexData{glm::vec2(1, 1), glm::vec2(1, 1)});	//Top Right
+			Verts.push_back(ScreenVertexData{glm::vec2(0,-1), glm::vec2(0, 1)});	//Bottom Left
+			Verts.push_back(ScreenVertexData{glm::vec2(1,-1), glm::vec2(1, 1)});	//Bottom Right
+			Verts.push_back(ScreenVertexData{glm::vec2(0, 1), glm::vec2(0, 0)});	//Top Left
+			Verts.push_back(ScreenVertexData{glm::vec2(1, 1), glm::vec2(1, 0)});	//Top Right
 
 			GLushort Indices[] = { 0, 1, 3,   0, 3, 2,   4, 5, 7,   4, 7, 6 };
 			m_CWindowVertexCount = _countof(Indices);
@@ -215,7 +216,7 @@ namespace TDVR
 			}
 
 			{
-				glClearColor(0, 0, 0, 1);
+				glClearColor(1.0f, 0, 0, 1);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			}
 
@@ -262,7 +263,7 @@ namespace TDVR
 					vertexdata.push_back(color.y);
 					vertexdata.push_back(color.z);
 
-					vertexdata.push_back(point.x);
+					vertexdata.push_back(-point.x);
 					vertexdata.push_back(point.y);
 					vertexdata.push_back(point.z);
 
@@ -273,7 +274,7 @@ namespace TDVR
 					m_ControllerVertexCount += 2;
 				}
 
-				glm::vec4 start = mat * glm::vec4{ 0,0, -0.02f,1 };
+				/*glm::vec4 start = mat * glm::vec4{ 0,0, -0.02f,1 };
 				glm::vec4 end = mat * glm::vec4{ 0,0,-39.f, 1 };
 				glm::vec3 color{ .92f,.92f,.71f };
 
@@ -291,7 +292,7 @@ namespace TDVR
 				vertexdata.push_back(color.y);
 				vertexdata.push_back(color.z);
 
-				m_ControllerVertexCount += 2;
+				m_ControllerVertexCount += 2;*/
 			}
 
 			if (m_ControllerVAO == 0) 
@@ -394,7 +395,10 @@ namespace TDVR
 			glEnable(GL_DEPTH_TEST);
 
 			//Loaded Model Rendering
+
+			//this feels inefficient, having to "render" the model 3 times just to draw points and lines
 			MDL::ModelManager::Instance()->Draw(m_ModelShader, GetViewProjectionMatrix(eye));
+			MDL::ModelManager::Instance()->Draw(m_LineShader, GetViewProjectionMatrix(eye));
 			MDL::ModelManager::Instance()->Draw(m_PointShader, GetViewProjectionMatrix(eye));
 			
 			bool InputReady = m_HMD->IsInputAvailable();
@@ -534,7 +538,6 @@ namespace TDVR
 					
 					if (m_DeviceClass[nDevice] == 0)
 					{
-						std::cout << m_HMD->GetTrackedDeviceClass(nDevice) << '\n';
 						switch (m_HMD->GetTrackedDeviceClass(nDevice))
 						{
 						case vr::TrackedDeviceClass_Controller:        m_DeviceClass[nDevice] = 'C'; break;
@@ -594,7 +597,7 @@ namespace TDVR
 				mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0],
 				mat.m[0][1], mat.m[1][1], mat.m[2][1], mat.m[3][1],
 				mat.m[0][2], mat.m[1][2], mat.m[2][2], mat.m[3][2],
-				mat.m[0][3], mat.m[1][3], mat.m[2][3], mat.m[3][3]  );
+				mat.m[0][3], mat.m[1][3], mat.m[2][3], mat.m[3][3]);
 		}
 
 		glm::mat4 VRhandler::GetHMDEyePos(vr::Hmd_Eye eye) 

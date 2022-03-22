@@ -148,6 +148,7 @@ namespace TDVR {
 			GPCS::Shader* m_ControllerShader;
 			GPCS::Shader* m_WindowShader;
 			GPCS::Shader* m_RenderModelShader;
+			GPCS::Shader* m_LineShader;
 			GPCS::Shader* m_PointShader;
 			
 			FrameBufferDesc m_LeftEyeDesc;

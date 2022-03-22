@@ -1,0 +1,37 @@
+#version 410 core
+layout (triangles) in;
+layout (line_strip, max_vertices = 4) out;
+
+in VS_OUT {
+	vec3 color;
+} gs_in[];
+
+uniform mat4 matrix;
+
+out vec4 vertexColor;
+
+void Draw_Line01()
+{
+	vertexColor = vec4(gs_in[0].color, 0.1);
+	gl_Position = gl_in[0].gl_Position;
+	EmitVertex();
+	gl_Position = gl_in[1].gl_Position;
+	EmitVertex();
+	EndPrimitive();
+}
+
+void Draw_Line20()
+{
+	vertexColor = vec4(gs_in[0].color, 0.1);
+	gl_Position = gl_in[2].gl_Position;
+	EmitVertex();
+	gl_Position = gl_in[0].gl_Position;
+	EmitVertex();
+	EndPrimitive();
+}
+
+void main()
+{
+	Draw_Line01();
+	Draw_Line20();
+}
