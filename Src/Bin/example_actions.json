@@ -8,19 +8,27 @@
             "controller_type" : "generic",
             "binding_url" : "example_bindings_generic.json"
          }
-      ], 
+      ],
   "actions": [
     {
-      "name": "/actions/demo/in/HideThisController",
+      "name": "/actions/demo/in/Interact",
       "type": "boolean"
     },
     {
-      "name": "/actions/demo/in/triggerhaptic",
+      "name": "/actions/demo/in/HideController",
       "type": "boolean"
     },
     {
-      "name": "/actions/demo/in/AnalogInput",
+      "name": "/actions/demo/in/Manipulate",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/demo/in/ChangeMode",
       "type": "vector2"
+    },
+    {
+      "name": "/actions/demo/in/SelectMode",
+      "type": "boolean"
     },
     {
       "name": "/actions/demo/in/Hand_Right",
@@ -40,15 +48,17 @@
     }
   ],
     "localization" : [
-        {
-            "language_tag": "en_US",
-            "/actions/demo/in/HideThisController" : "Hide this Controller",
-            "/actions/demo/in/triggerhaptic" : "Trigger Haptic Pulse",
-            "/actions/demo/in/AnalogInput" : "Analog Input",
-            "/actions/demo/in/Hand_Right" : "Right Hand Pose",
-            "/actions/demo/in/Hand_Left" : "Left Hand Pose",
-            "/actions/demo/out/haptic_left" : "Left Haptic Feedback",
-            "/actions/demo/out/haptic_right" : "Right Haptic Feedback"
-        }
+      {
+        "language_tag": "en_US",
+        "/actions/demo/in/Interact": "Interact with the Scene",
+        "/actions/demo/in/HideController": "Hide this Controller",
+        "/actions/demo/in/Manipulate": "Manipulate Selected vertices",
+        "/actions/demo/in/ChangeMode": "Change Manipulation Mode (Vertices, Edges, Faces)",
+        "/actions/demo/in/SelectMode": "confirm Manipulation Mode (Vertices, Edges, Faces)",
+        "/actions/demo/in/Hand_Right": "Right Hand Pose",
+        "/actions/demo/in/Hand_Left": "Left Hand Pose",
+        "/actions/demo/out/haptic_left": "Left Haptic Feedback",
+        "/actions/demo/out/haptic_right": "Right Haptic Feedback"
+      }
     ]
 }

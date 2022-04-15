@@ -1,5 +1,8 @@
 #pragma once
 #include "ModelManager.h"
+#include "Model.h"
+#include "Graphics/Shader.h"
+#include "Model.h"
 
 namespace TDVR 
 {
@@ -45,6 +48,17 @@ namespace TDVR
 
 			return textureID;
 		}*/
+
+		void ModelManager::Draw(Shader* shader, glm::mat4& mat)
+		{
+			shader->Use();
+			for (int i = 0; i < m_Models.size(); i++)
+			{
+				mat = mat * m_Models[i]->GetTranslationMatrix();
+				shader->SetMat4("matrix", mat);
+				m_Models[i]->Draw();
+			}
+		}
 
 		void ModelManager::AddCube() 
 		{
@@ -288,38 +302,40 @@ namespace TDVR
 			return new Model(name, vertices, indices, faces, matrix);
 		}
 
-		// checks all material textures of a given type and loads the textures if they're not loaded yet.
-		// the required info is returned as a Texture struct.
-		//std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
-		//{
-		//	std::vector<Texture> textures;
-		//	for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
-		//	{
-		//		aiString str;
-		//		mat->GetTexture(type, i, &str);
-		//		// check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
-		//		bool skip = false;
-		//		for (unsigned int j = 0; j < textures.size(); j++)
-		//		{
-		//			if (std::strcmp(textures[j].path, str.C_Str()) == 0)
-		//			{
-		//				textures.push_back(textures[j]);
-		//				skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
-		//				break;
-		//			}
-		//		}
-		//		if (!skip)
-		//		{   // if texture hasn't been loaded already, load it
-		//			GLuint id = LoadTexture(str.C_Str(), this->directory);
-		//			Texture texture;
-		//			texture.id = 
-		//			texture.type = typeName;
-		//			texture.path = str.C_Str();
-		//			textures.push_back(texture);
-		//			textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
-		//		}
-		//	}
-		//	return textures;
-		//}
+		void ModelManager::VertexSelect(glm::vec4& ControllerPos) 
+		{
+			int vertexSize;
+			glm::vec4 point;
+			for (int i=0; i< m_Models.size(); i++) 
+			{
+				int vertexSize = m_Models[i]->m_Vertices.size();
+				const glm::mat4& mat = m_Models[i]->GetTranslationMatrix();
+				for (int j = 0; j < vertexSize; j++) 
+				{
+					point = mat * m_Models[i]->m_Vertices[j].m_Pos;
+					if (Math::GetDistance(ControllerPos, point) < 0.1f) {
+						m_Selectedvertices.push_back(&m_Models[i]->m_Vertices[j]);
+						m_Models[i]->m_Vertices[j].m_VertexColor = glm::vec3{ 1.0f, 0.5f, 0.0f };
+						return;
+					}
+				}
+			}
+			for (const auto& a : m_Selectedvertices)
+				a->m_VertexColor = glm::vec3{ 0.36f, 0.13f, 0.43f };
+			m_Selectedvertices.clear();
+			
+		}
+
+		void ModelManager::MoveVertex(const glm::vec4& ControllerPos)
+		{
+			if (m_Selectedvertices.size() == 0)
+				return;
+			glm::vec4 dir = glm::vec4(0.0f);
+			for (const auto& a : m_Selectedvertices) {
+				dir = glm::vec4(ControllerPos.x - a->m_Pos.x, ControllerPos.y - a->m_Pos.y, ControllerPos.z - a->m_Pos.z, 0.0f);
+				a->m_Pos =ControllerPos + dir;
+				std::cout << "X Pos: " << a->m_Pos.x << '\n';
+			}
+		}
 	};
 }

@@ -1,4 +1,8 @@
 #pragma once
+#ifndef __VRhandler__
+#define __VRhandler__
+
+
 #include <glad/glad.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
@@ -6,12 +10,21 @@
 #include <openvr.h>
 #include <vector>
 #include <iostream>
-#include "Maths/Math.h"
-#include "Geometry/ModelManager.h"
-#include "Geometry/Model.h"
+
+
+namespace TDVR {
+	namespace INPT { class InputHandler; }
+	namespace MDL { class Model; class ModelManager; }
+	namespace GPCS { class Shader; }
+}
 
 namespace TDVR {
 	namespace VR {
+
+		using INPT::InputHandler;
+		using MDL::Model;
+		using MDL::ModelManager;
+		using GPCS::Shader;
 
 		enum EHand 
 		{
@@ -27,6 +40,7 @@ namespace TDVR {
 			glm::mat4 m_ModelMatrix;
 			MDL::Model* m_Model = nullptr;
 			std::string m_ModelName;
+			glm::vec4 m_SelectionPos;
 			bool m_ShowController;
 		
 		};
@@ -68,68 +82,7 @@ namespace TDVR {
 				, m_PoseClasses("") { Init(); memset(m_DeviceClass, 0, sizeof(m_DeviceClass));
 			}
 
-			~VRhandler()
-			{
-				if (m_HMD) {
-					vr::VR_Shutdown();
-					m_HMD = NULL;
-				}
-
-				for (std::vector< MDL::Model* >::iterator i = m_ControllerModels.begin(); i != m_ControllerModels.end(); i++)
-				{
-					if ((*i))
-					{
-						delete (*i);
-					}
-				}
-
-				if (m_Context)
-				{
-
-					if (m_ControllerShader)
-					{
-						glDeleteProgram(m_ControllerShader->m_ShaderID);
-					}
-					if (m_ModelShader)
-					{
-						glDeleteProgram(m_ModelShader->m_ShaderID);
-					}
-					if (m_WindowShader)
-					{
-						glDeleteProgram(m_WindowShader->m_ShaderID);
-					}
-
-					glDeleteRenderbuffers(1, &m_LeftEyeDesc.m_DepthBufferID);
-					glDeleteTextures(1, &m_LeftEyeDesc.m_RenderTextureID);
-					glDeleteFramebuffers(1, &m_LeftEyeDesc.m_RenderFrameBufferID);
-					glDeleteTextures(1, &m_LeftEyeDesc.m_ResolveTextureID);
-					glDeleteFramebuffers(1, &m_LeftEyeDesc.m_ResolveFrameBufferID);
-
-					glDeleteRenderbuffers(1, &m_RightEyeDesc.m_DepthBufferID);
-					glDeleteTextures(1, &m_RightEyeDesc.m_RenderTextureID);
-					glDeleteFramebuffers(1, &m_RightEyeDesc.m_RenderFrameBufferID);
-					glDeleteTextures(1, &m_RightEyeDesc.m_ResolveTextureID);
-					glDeleteFramebuffers(1, &m_RightEyeDesc.m_ResolveFrameBufferID);
-
-					if (m_CWindowVAO != 0)
-					{
-						glDeleteVertexArrays(1, &m_CWindowVAO);
-					}
-					if (m_ControllerVAO != 0)
-					{
-						glDeleteVertexArrays(1, &m_ControllerVAO);
-					}
-				}
-
-				if (m_Window)
-				{
-					SDL_DestroyWindow(m_Window);
-					m_Window = NULL;
-				}
-
-				SDL_Quit();
-
-			}
+			~VRhandler();
 		private:
 			//Device Specific Varibles
 			vr::IVRSystem* m_HMD;
@@ -187,12 +140,7 @@ namespace TDVR {
 
 
 			//Device Action Variables
-			vr::VRActionHandle_t m_ActionHideController = vr::k_ulInvalidActionHandle;
-			vr::VRActionHandle_t m_ActionTriggerHaptic = vr::k_ulInvalidActionHandle;
-			vr::VRActionHandle_t m_ActionAnalongInput = vr::k_ulInvalidActionHandle;
-			vr::VRActionSetHandle_t m_actionsetDemo = vr::k_ulInvalidActionSetHandle;
-			
-			glm::vec2 m_AnalogValue;
+			InputHandler* m_InputHandler;
 
 			
 			//Initialisation functions
@@ -200,7 +148,7 @@ namespace TDVR {
 			void InitCompanionWindow();
 			bool SetupRenderStereoTargets();
 			bool CreateFrameBuffer(int renderWidth, int renderHeight, FrameBufferDesc& bufferDesc);
-
+			void SetProjectionMatrix();
 
 			//HMD and Window Render Functions
 			void RenderAxis();
@@ -218,9 +166,7 @@ namespace TDVR {
 
 
 			//Device Event Functions
-			bool GetDigitalActionRisingEdge(vr::VRActionHandle_t action, vr::VRInputValueHandle_t* pDevicePath = nullptr);
-			bool GetDigitalActionState(vr::VRActionHandle_t action, vr::VRInputValueHandle_t* pDevicePath = nullptr);
-			void ProcessVREvent(vr::VREvent_t event);
+			
 			std::string GetDeviceString(vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError* peError = NULL);
 
 
@@ -231,3 +177,4 @@ namespace TDVR {
 		};
 	}
 }
+#endif //!__VRhandler__

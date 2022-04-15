@@ -8,10 +8,10 @@ in VS_OUT {
 
 uniform mat4 matrix;
 
-const float radius = 0.008;
+const float radius = 0.004;
 const float PI = 3.14159;
 const float HALF_PI = 1.57079;
-const int division = 10;
+const int division = 20;
 
 
 out vec4 vertexColor;
@@ -22,20 +22,16 @@ void Build_Sphere(vec4 pos)
 	float longitude;
 	float latitude;
 	float x, y, z;
-	
-	for(int i = 0; i < division; i++)
+	for(int j = 0; j <= division; j++)
 	{
-		longitude = -PI + (i - 0) * (PI + PI) / (division - 0);
-		for(int j = 0; j < division; j++)
-		{
-			latitude = -HALF_PI + (j - 0) * (HALF_PI + HALF_PI) / (division - 0); //vertex 1
-			x = radius * sin(longitude) * cos(latitude);
-			y = radius * sin(longitude) * sin(latitude);
-			z = radius * cos(longitude);
-			gl_Position = pos + vec4(x,y,z, 0.0);
-			EmitVertex();
-
-		}
+		gl_Position = pos;
+		EmitVertex();
+		latitude = -HALF_PI + (j) * (2*PI) / division; //vertex 1
+		x = radius * cos(latitude);
+		y = radius * sin(latitude);
+		z = 0; 
+		gl_Position = pos + vec4(x,y,z, 0.0);
+		EmitVertex();
 	}
 	EndPrimitive();
 }

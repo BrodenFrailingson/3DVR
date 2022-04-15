@@ -1,6 +1,6 @@
 #include "Application.h"
+#include "Geometry/ModelManager.h"
 
-using namespace TDVR;
 
 int main(int argc , char* argv[]) 
 {
@@ -8,10 +8,10 @@ int main(int argc , char* argv[])
 	
 	while (!ShouldQuit) 
 	{
-		ShouldQuit = Application::Instance()->Input();
-		Application::Instance()->Draw();
+		ShouldQuit = TDVR::Application::Instance()->Input();
+		TDVR::Application::Instance()->Draw();
 	};
-	Application::Instance()->Clear();
-	MDL::ModelManager::Instance()->Clear();
+	TDVR::Application::Instance()->Clear();
+	TDVR::MDL::ModelManager::Instance()->Clear();
 	return 0;
 }

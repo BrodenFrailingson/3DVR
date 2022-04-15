@@ -1,5 +1,5 @@
 #version 410 core
-in vec4 vertexColor;
+in vec3 vertexColor;
 out vec4 outputColor;
 
 void main()

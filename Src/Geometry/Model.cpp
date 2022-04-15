@@ -48,6 +48,8 @@ namespace TDVR
 		void Model::Draw()
 		{
 			glBindVertexArray(m_VAO);
+			glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+			glBufferData(GL_ARRAY_BUFFER, m_Vertices.size() * sizeof(Math::Vertex), &m_Vertices[0], GL_STATIC_DRAW);
 			if(m_TextureID != NULL)
 			{
 				glActiveTexture(GL_TEXTURE0);

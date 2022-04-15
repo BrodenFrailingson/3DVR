@@ -7,6 +7,6 @@ out vec3 vertexColor;
 
 void main()
 {
-	vertexColor = vec3(0.6, 0.6, 0.6);
+	vertexColor = vec3(0.5, 0.5, 0.5);
 	gl_Position = matrix * position;
 }

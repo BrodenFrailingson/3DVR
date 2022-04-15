@@ -12,7 +12,7 @@ out vec4 vertexColor;
 
 void Draw_Line01()
 {
-	vertexColor = vec4(gs_in[0].color, 0.1);
+	vertexColor = vec4(gs_in[0].color, 1.0);
 	gl_Position = gl_in[0].gl_Position;
 	EmitVertex();
 	gl_Position = gl_in[1].gl_Position;
@@ -22,7 +22,7 @@ void Draw_Line01()
 
 void Draw_Line20()
 {
-	vertexColor = vec4(gs_in[0].color, 0.1);
+	vertexColor = vec4(gs_in[0].color, 1.0);
 	gl_Position = gl_in[2].gl_Position;
 	EmitVertex();
 	gl_Position = gl_in[0].gl_Position;

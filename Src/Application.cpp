@@ -1,5 +1,5 @@
 #include "Application.h"
-
+#include "System/VRhandler.h"
 
 namespace TDVR {
 
@@ -18,7 +18,7 @@ namespace TDVR {
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 
-		m_VRSystem = new VR::VRhandler();
+		m_VRSystem = new VRhandler();
 		return true;
 	}
 

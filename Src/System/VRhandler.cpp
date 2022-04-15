@@ -1,5 +1,9 @@
 #pragma once
 #include "VRhandler.h"
+#include "Maths/Math.h"
+#include "Geometry/ModelManager.h"
+#include "Geometry/Model.h"
+#include "InputHandler.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -54,24 +58,28 @@ namespace TDVR
 				return false;
 			}
 			
-			m_ModelShader = new GPCS::Shader("Model");
-			m_ControllerShader = new GPCS::Shader("Controller");
-			m_WindowShader = new GPCS::Shader("Window");
-			m_RenderModelShader = new GPCS::Shader("RenderModel");
-			m_LineShader = new GPCS::Shader("Line");
-			m_PointShader = new GPCS::Shader("Point");
+			m_ModelShader = new Shader("Model");
+			m_ControllerShader = new Shader("Controller");
+			m_WindowShader = new Shader("Window");
+			m_RenderModelShader = new Shader("RenderModel");
+			m_LineShader = new Shader("Line");
+			m_PointShader = new Shader("Point");
 
 			m_ProjectionLeft = GetHMDProjectionMatrix(vr::Eye_Left);
 			m_ProjectionRight = GetHMDProjectionMatrix(vr::Eye_Right);
+			
 			m_LeftEyeMat = GetHMDEyePos(vr::Eye_Left);
 			m_RightEyeMat = GetHMDEyePos(vr::Eye_Right);
+
+			m_LeftEyeMat[3][0] = 0.01f;
+			m_RightEyeMat[3][0] = 0.01f;
+
 
 			SetupRenderStereoTargets();
 			InitCompanionWindow();
 			
-			
 
-			MDL::ModelManager::Instance()->AddCube();
+			ModelManager::Instance()->AddCube();
 			
 			if (!vr::VRCompositor()) 
 			{
@@ -79,25 +87,11 @@ namespace TDVR
 				return false;
 			}
 
-			std::string strpath = SRC_DIR + (std::string)"/" + "Bin/" + "example_actions.json";
-			const char* filepath = strpath.c_str();
-			vr::VRInput()->SetActionManifestPath(filepath);
-
-			vr::VRInput()->GetActionHandle("/actions/demo/in/HideThisController", &m_ActionHideController);
-			vr::VRInput()->GetActionHandle("/actions/demo/in/TriggerHaptic", &m_ActionTriggerHaptic);
-			vr::VRInput()->GetActionHandle("/actions/demo/in/AnalogInput", &m_ActionAnalongInput);
-
-			vr::VRInput()->GetActionSetHandle("/actions/demo", &m_actionsetDemo);
-
-			vr::VRInput()->GetActionHandle("/actions/demo/out/Haptic_Left", &m_Controllers[left].m_ActionHaptic);
-			vr::VRInput()->GetInputSourceHandle("/user/hand/left", &m_Controllers[left].m_Source);
-			vr::VRInput()->GetActionHandle("/actions/demo/in/Hand_Left", &m_Controllers[left].m_ActionPose);
-
-			vr::VRInput()->GetActionHandle("/actions/demo/out/Haptic_Right", &m_Controllers[right].m_ActionHaptic);
-			vr::VRInput()->GetInputSourceHandle("/user/hand/right", &m_Controllers[right].m_Source);
-			vr::VRInput()->GetActionHandle("/actions/demo/in/Hand_Right", &m_Controllers[right].m_ActionPose);
+			m_InputHandler = new InputHandler();
+			m_InputHandler->InitActionHandles(m_Controllers);
 			return true;
 		}
+
 
 		bool VRhandler::SetupRenderStereoTargets() 
 		{
@@ -157,16 +151,16 @@ namespace TDVR
 			std::vector<ScreenVertexData> Verts;
 
 			// left eye verts
-			Verts.push_back(ScreenVertexData{glm::vec2(-1,-1), glm::vec2(0, 1)});	//Bottom Left
-			Verts.push_back(ScreenVertexData{glm::vec2( 0,-1), glm::vec2(1, 1)});	//Bottom Right
-			Verts.push_back(ScreenVertexData{glm::vec2(-1, 1), glm::vec2(0, 0)});	//Top Left
-			Verts.push_back(ScreenVertexData{glm::vec2( 0, 1), glm::vec2(1, 0)});	//Top Right
+			Verts.push_back(ScreenVertexData{glm::vec2(-1,-1), glm::vec2(0, 0)});	//Bottom Left
+			Verts.push_back(ScreenVertexData{glm::vec2( 0,-1), glm::vec2(1, 0)});	//Bottom Right
+			Verts.push_back(ScreenVertexData{glm::vec2(-1, 1), glm::vec2(0, 1)});	//Top Left
+			Verts.push_back(ScreenVertexData{glm::vec2( 0, 1), glm::vec2(1, 1)});	//Top Right
 
 			// right eye verts
-			Verts.push_back(ScreenVertexData{glm::vec2(0,-1), glm::vec2(0, 1)});	//Bottom Left
-			Verts.push_back(ScreenVertexData{glm::vec2(1,-1), glm::vec2(1, 1)});	//Bottom Right
-			Verts.push_back(ScreenVertexData{glm::vec2(0, 1), glm::vec2(0, 0)});	//Top Left
-			Verts.push_back(ScreenVertexData{glm::vec2(1, 1), glm::vec2(1, 0)});	//Top Right
+			Verts.push_back(ScreenVertexData{glm::vec2(0,-1), glm::vec2(0, 0)});	//Bottom Left
+			Verts.push_back(ScreenVertexData{glm::vec2(1,-1), glm::vec2(1, 0)});	//Bottom Right
+			Verts.push_back(ScreenVertexData{glm::vec2(0, 1), glm::vec2(0, 1)});	//Top Left
+			Verts.push_back(ScreenVertexData{glm::vec2(1, 1), glm::vec2(1, 1)});	//Top Right
 
 			GLushort Indices[] = { 0, 1, 3,   0, 3, 2,   4, 5, 7,   4, 7, 6 };
 			m_CWindowVertexCount = _countof(Indices);
@@ -247,6 +241,7 @@ namespace TDVR
 
 				const glm::mat4& mat = m_Controllers[hand].m_ModelMatrix;
 				glm::vec4 centre = mat * glm::vec4{ 0,0,0,1 };
+				m_Controllers[hand].m_SelectionPos = centre;
 
 				for (int i = 0; i < 3; i++) 
 				{
@@ -397,9 +392,9 @@ namespace TDVR
 			//Loaded Model Rendering
 
 			//this feels inefficient, having to "render" the model 3 times just to draw points and lines
-			MDL::ModelManager::Instance()->Draw(m_ModelShader, GetViewProjectionMatrix(eye));
-			MDL::ModelManager::Instance()->Draw(m_LineShader, GetViewProjectionMatrix(eye));
-			MDL::ModelManager::Instance()->Draw(m_PointShader, GetViewProjectionMatrix(eye));
+			ModelManager::Instance()->Draw(m_ModelShader, GetViewProjectionMatrix(eye));
+			ModelManager::Instance()->Draw(m_LineShader, GetViewProjectionMatrix(eye));
+			ModelManager::Instance()->Draw(m_PointShader, GetViewProjectionMatrix(eye));
 			
 			bool InputReady = m_HMD->IsInputAvailable();
 
@@ -434,47 +429,9 @@ namespace TDVR
 		{
 			vr::VREvent_t event;
 			while (m_HMD->PollNextEvent(&event, sizeof(event)))
-				ProcessVREvent(event);
+				m_InputHandler->ProcessVREvent(event);
 
-			vr::VRActiveActionSet_t actionSet = { 0 };
-			actionSet.ulActionSet = m_actionsetDemo;
-			vr::VRInput()->UpdateActionState(&actionSet, sizeof(actionSet), 1);
-
-			vr::VRInputValueHandle_t ulHapticDevice;
-			if (GetDigitalActionRisingEdge(m_ActionTriggerHaptic, &ulHapticDevice))
-			{
-				if (ulHapticDevice == m_Controllers[left].m_Source)
-				{
-					vr::VRInput()->TriggerHapticVibrationAction(m_Controllers[left].m_ActionHaptic, 0, 1, 4.f, 1.0f, vr::k_ulInvalidInputValueHandle);
-				}
-				if (ulHapticDevice == m_Controllers[right].m_Source)
-				{
-					vr::VRInput()->TriggerHapticVibrationAction(m_Controllers[right].m_ActionHaptic, 0, 1, 4.f, 1.0f, vr::k_ulInvalidInputValueHandle);
-				}
-			}
-
-			vr::InputAnalogActionData_t analogData;
-			if (vr::VRInput()->GetAnalogActionData(m_ActionAnalongInput, &analogData, sizeof(analogData), vr::k_ulInvalidInputValueHandle) == vr::VRInputError_None && analogData.bActive)
-			{
-				m_AnalogValue.x = analogData.x;
-				m_AnalogValue.y = analogData.y;
-			}
-
-			m_Controllers[left].m_ShowController = true;
-			m_Controllers[right].m_ShowController = true;
-
-			vr::VRInputValueHandle_t ulHideDevice;
-			if (GetDigitalActionState(m_ActionHideController, &ulHideDevice))
-			{
-				if (ulHideDevice == m_Controllers[left].m_Source)
-				{
-					m_Controllers[left].m_ShowController = false;
-				}
-				if (ulHideDevice == m_Controllers[right].m_Source)
-				{
-					m_Controllers[right].m_ShowController = false;
-				}
-			}
+			m_InputHandler->HandleInput(m_Controllers);
 
 			for (EHand hand = left; hand <= right; ((int&)hand)++)
 			{
@@ -492,7 +449,6 @@ namespace TDVR
 					if (vr::VRInput()->GetOriginTrackedDeviceInfo(poseData.activeOrigin, &originInfo, sizeof(originInfo)) == vr::VRInputError_None
 						&& originInfo.trackedDeviceIndex != vr::k_unTrackedDeviceIndexInvalid)
 					{
-
 						std::string sRenderModelName = GetDeviceString(originInfo.trackedDeviceIndex, vr::Prop_RenderModelName_String);
 						if (sRenderModelName != m_Controllers[hand].m_ModelName)
 						{
@@ -504,21 +460,7 @@ namespace TDVR
 			}
 		}
 
-		void VRhandler::ProcessVREvent(vr::VREvent_t event) 
-		{
-			switch (event.eventType) 
-			{
-			case vr::VREvent_TrackedDeviceActivated:
-				std::cout << "Device Activated: " << event.trackedDeviceIndex << '\n';
-				break;
-			case vr::VREvent_TrackedDeviceDeactivated:
-				std::cout << "Device Dectivated: " << event.trackedDeviceIndex << '\n';
-				break;
-			case vr::VREvent_TrackedDeviceUpdated:
-				std::cout << "Device Updated: " << event.trackedDeviceIndex << '\n';
-				break;
-			}
-		}
+		
 		
 		void VRhandler::UpdateHMDPose() 
 		{
@@ -591,6 +533,10 @@ namespace TDVR
 		{
 			if (!m_HMD)
 				return glm::mat4{ 1.0f };
+
+			float top, bottom, left, right;
+			m_HMD->GetProjectionRaw(eye, &left, &right, &top, &bottom);
+
 			vr::HmdMatrix44_t mat = m_HMD->GetProjectionMatrix(eye, 0.1f, 30.0f);
 
 			return glm::mat4(
@@ -613,47 +559,11 @@ namespace TDVR
 				mat.m[0][3], mat.m[1][3], mat.m[2][3], 1.0f );
 		}
 
-		bool VRhandler::GetDigitalActionRisingEdge(vr::VRActionHandle_t action, vr::VRInputValueHandle_t* pDevicePath)
-		{
-			vr::InputDigitalActionData_t actionData;
-			vr::VRInput()->GetDigitalActionData(action, &actionData, sizeof(actionData), vr::k_ulInvalidInputValueHandle);
-			if (pDevicePath)
-			{
-				*pDevicePath = vr::k_ulInvalidInputValueHandle;
-				if (actionData.bActive)
-				{
-					vr::InputOriginInfo_t originInfo;
-					if (vr::VRInputError_None == vr::VRInput()->GetOriginTrackedDeviceInfo(actionData.activeOrigin, &originInfo, sizeof(originInfo)))
-					{
-						*pDevicePath = originInfo.devicePath;
-					}
-				}
-			}
-			return actionData.bActive && actionData.bChanged && actionData.bState;
-		}
-
-		bool VRhandler::GetDigitalActionState(vr::VRActionHandle_t action, vr::VRInputValueHandle_t* pDevicePath)
-		{
-			vr::InputDigitalActionData_t actionData;
-			vr::VRInput()->GetDigitalActionData(action, &actionData, sizeof(actionData), vr::k_ulInvalidInputValueHandle);
-			if (pDevicePath)
-			{
-				*pDevicePath = vr::k_ulInvalidInputValueHandle;
-				if (actionData.bActive)
-				{
-					vr::InputOriginInfo_t originInfo;
-					if (vr::VRInputError_None == vr::VRInput()->GetOriginTrackedDeviceInfo(actionData.activeOrigin, &originInfo, sizeof(originInfo)))
-					{
-						*pDevicePath = originInfo.devicePath;
-					}
-				}
-			}
-			return actionData.bActive && actionData.bState;
-		}
+		
 
 		MDL::Model* VRhandler::LoadVRModel(const char* ModelName)
 		{
-			for (std::vector< MDL::Model* >::iterator i = m_ControllerModels.begin(); i != m_ControllerModels.end(); i++)
+			for (std::vector< Model* >::iterator i = m_ControllerModels.begin(); i != m_ControllerModels.end(); i++)
 			{
 			
 				if ((*i)->m_FilePath == ModelName)
@@ -735,7 +645,7 @@ namespace TDVR
 				vr::VRRenderModels()->FreeRenderModel(model);
 				return NULL; // move on to the next tracked device
 			}
-			m_ControllerModels.push_back(new MDL::Model(ModelName, vertices, indices, {}, glm::mat4(1.0f), LoadVRTexture(*pTexture)));
+			m_ControllerModels.push_back(new Model(ModelName, vertices, indices, {}, glm::mat4(1.0f), LoadVRTexture(*pTexture)));
 			vr::VRRenderModels()->FreeRenderModel(model);
 			vr::VRRenderModels()->FreeTexture(pTexture);
 			
@@ -766,6 +676,69 @@ namespace TDVR
 			glBindTexture(GL_TEXTURE_2D, 0);
 
 			return textureid;
+		}
+
+		VRhandler::~VRhandler()
+		{
+			if (m_HMD) {
+				vr::VR_Shutdown();
+				m_HMD = NULL;
+			}
+
+			for (std::vector< Model* >::iterator i = m_ControllerModels.begin(); i != m_ControllerModels.end(); i++)
+			{
+				if ((*i))
+				{
+					delete (*i);
+				}
+			}
+
+			if (m_Context)
+			{
+
+				if (m_ControllerShader)
+				{
+					glDeleteProgram(m_ControllerShader->m_ShaderID);
+				}
+				if (m_ModelShader)
+				{
+					glDeleteProgram(m_ModelShader->m_ShaderID);
+				}
+				if (m_WindowShader)
+				{
+					glDeleteProgram(m_WindowShader->m_ShaderID);
+				}
+
+				glDeleteRenderbuffers(1, &m_LeftEyeDesc.m_DepthBufferID);
+				glDeleteTextures(1, &m_LeftEyeDesc.m_RenderTextureID);
+				glDeleteFramebuffers(1, &m_LeftEyeDesc.m_RenderFrameBufferID);
+				glDeleteTextures(1, &m_LeftEyeDesc.m_ResolveTextureID);
+				glDeleteFramebuffers(1, &m_LeftEyeDesc.m_ResolveFrameBufferID);
+
+				glDeleteRenderbuffers(1, &m_RightEyeDesc.m_DepthBufferID);
+				glDeleteTextures(1, &m_RightEyeDesc.m_RenderTextureID);
+				glDeleteFramebuffers(1, &m_RightEyeDesc.m_RenderFrameBufferID);
+				glDeleteTextures(1, &m_RightEyeDesc.m_ResolveTextureID);
+				glDeleteFramebuffers(1, &m_RightEyeDesc.m_ResolveFrameBufferID);
+
+				if (m_CWindowVAO != 0)
+				{
+					glDeleteVertexArrays(1, &m_CWindowVAO);
+				}
+				if (m_ControllerVAO != 0)
+				{
+					glDeleteVertexArrays(1, &m_ControllerVAO);
+				}
+			}
+
+			if (m_Window)
+			{
+				SDL_DestroyWindow(m_Window);
+				m_Window = NULL;
+			}
+
+			SDL_Quit();
+
 		}
 
 	}

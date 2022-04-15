@@ -48,5 +48,14 @@ namespace TDVR
 			return outmat;
 		}
 
+
+		inline float GetDistance(glm::vec4& pos1, glm::vec4& pos2) 
+		{
+			float xdist = powf(pos2.x - pos1.x, 2.0f);
+			float ydist = powf(pos2.y - pos1.y, 2.0f);
+			float zdist = powf(pos2.z - pos1.z, 2.0f);
+			return sqrtf(xdist + ydist + zdist);
+		}
+
 	}
 }

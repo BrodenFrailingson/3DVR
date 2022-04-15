@@ -47,7 +47,7 @@ add_executable(${name} Src/Application.h Src/Application.cpp Src/Main.cpp
 					   Src/Maths/Math.cpp Src/Maths/Math.h		
 					   
 					   #System Files
-					   Src/System/VRhandler.cpp Src/System/VRhandler.h)
+					   Src/System/VRhandler.cpp Src/System/VRhandler.h Src/System/InputHandler.h Src/System/InputHandler.cpp)
 
 find_package(glm CONFIG REQUIRED) #Throws Error
 find_package(imgui CONFIG REQUIRED) #Throws Error
@@ -57,10 +57,11 @@ find_package(glad CONFIG REQUIRED) #Assumed Error Thrown not yet tested
 find_package(SDL2 CONFIG REQUIRED) #Assumed Error Thrown not yet tested
 find_package(OpenVR REQUIRED) #Assumed Error Thrown not yet tested
   
-# Had to use vcpkg x-package-info --x-json --x-installed [lib]:x86-windows in cmd to find the usage info
-#target_link_libraries(${name} PRIVATE SDL2::SDL2 SDL2::SDL2main glfw assimp::assimp openvr::openvr glm::glm glad::glad imgui::imgui )
+
 target_include_directories(${name} PRIVATE Src)
 target_link_libraries(${name} PRIVATE glm::glm imgui::imgui assimp::assimp glfw glad::glad SDL2::SDL2 SDL2::SDL2main OpenVR::OpenVR) 
+
+set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${name})
 
 
 

@@ -61,10 +61,6 @@ namespace TDVR
             Transform m_Transform;
             GLuint m_VAO, m_VBO, m_IBO;
             unsigned int m_TextureID;
-            
-
-            vr::RenderModel_t* VRModel;
-            vr::RenderModel_TextureMap_t* VRTexture;
 
             //Private Member Functions
             void SetUpModel();

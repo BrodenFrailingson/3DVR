@@ -1,15 +1,28 @@
 #pragma once
-#include <iostream>
 
-#include "Model.h"
+#include <iostream>
+#include <vector>
 #include "stb_image.h"
+#include "Maths/Math.h"
 #include <openvr.h>
+#include <map>
+
+namespace TDVR 
+{
+	namespace GPCS { class Shader; }
+	namespace MDL { class Model; }
+
+}
 
 
 namespace TDVR 
 { 
 	namespace MDL 
 	{
+		using GPCS::Shader;
+		using MDL::Model;
+
+
 		class ModelManager 
 		{
 		public:
@@ -20,16 +33,10 @@ namespace TDVR
 			inline std::vector<Model*>& GetModelVector() { return m_Models; }
 			void LoadModel(const char* ModelName);
 			void AddCube();
-			void Draw(GPCS::Shader* shader,glm::mat4& mat)
-			{ 
-				shader->Use();
-				for (int i = 0; i < m_Models.size(); i++)
-				{
-					mat = mat * m_Models[i]->GetTranslationMatrix();
-					shader->SetMat4("matrix", mat);
-					m_Models[i]->Draw();
-				}
-			}
+			void Draw(Shader* shader, glm::mat4& mat);
+
+			void VertexSelect(glm::vec4& controllerpos);
+			void MoveVertex(const glm::vec4& ControllerPos);
 
 			void Clear() 
 			{
@@ -39,12 +46,12 @@ namespace TDVR
 		private:
 			//Private Member Variables
 			std::vector<Model*> m_Models;
+			std::vector<Math::Vertex*> m_Selectedvertices;
 			//Private Member Functions
 			
 			void ProcessNode(aiNode* node, const aiScene* scene, const char* name);
 			Model* ProcessMesh(aiMesh* mesh, const aiScene* scene, glm::mat4 matrix, const char* name);
-			//std::vector<Texture> LoadMaterialTextures(aiMaterial* material, aiTextureType type, const char* TexType);
-			//GLuint LoadTexture(const char* TextureName, const char* TextureDir, bool gamma = false);
+			
 
 			//Essentials
 			ModelManager() {}
